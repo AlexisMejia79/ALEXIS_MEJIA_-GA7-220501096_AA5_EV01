@@ -1,0 +1,6 @@
+$kind: collection
+description: Pruebas de salud, registro, inicio de sesion, credenciales incorrectas, usuario duplicado y validaciones. Ejecuta las solicitudes en orden desde Collection Runner.
+variables:
+  testUser: ""
+  testPassword: ""
+  testUserId: ""

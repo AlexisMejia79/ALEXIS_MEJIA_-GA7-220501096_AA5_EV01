@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuario": "{{testUser}}",
+      "contrasena": "{{testPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El inicio de sesion es correcto', function () {
+          pm.response.to.have.status(200);
+          const body = pm.response.json();
+          pm.expect(body.message).to.eql('Inicio de sesion correcto.');
+          pm.expect(body.usuario.id).to.eql(Number(pm.collectionVariables.get('testUserId')));
+      });
+    language: text/javascript
+order: 3000

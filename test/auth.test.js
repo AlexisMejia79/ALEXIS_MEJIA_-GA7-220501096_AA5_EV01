@@ -96,6 +96,7 @@ test('registro, inicio de sesion y validaciones', async (t) => {
     body: JSON.stringify({ usuario: 'alexis_1', contrasena: 'OtraClave123' })
   });
   assert.equal(duplicate.status, 409);
+  assert.equal((await duplicate.json()).message, 'Ese usuario ya esta registrado.');
 
   const invalid = await fetch(`${baseUrl}/api/auth/register`, {
     method: 'POST',
@@ -123,5 +124,70 @@ test('avisa cuando MySQL no esta disponible', async (t) => {
 
   const health = await fetch(`${baseUrl}/api/health`);
   assert.equal(health.status, 503);
-  assert.match((await health.json()).message, /MySQL de XAMPP/);
+  assert.match((await health.json()).message, /XAMPP/);
+});
+
+test('explica problemas comunes de configuracion de MySQL', async (t) => {
+  const scenarios = [
+    {
+      code: 'ER_BAD_DB_ERROR',
+      path: '/api/health',
+      status: 503,
+      expectedMessage: 'No existe la base de datos auth_app_db'
+    },
+    {
+      code: 'ER_ACCESS_DENIED_ERROR',
+      path: '/api/health',
+      status: 503,
+      expectedMessage: 'DB_USER y DB_PASSWORD'
+    },
+    {
+      code: 'ER_NO_SUCH_TABLE',
+      path: '/api/auth/register',
+      status: 500,
+      expectedMessage: 'La tabla de usuarios no existe'
+    }
+  ];
+  const originalConsoleError = console.error;
+  console.error = () => {};
+
+  try {
+    for (const scenario of scenarios) {
+      const databaseError = new Error('Simulated database error');
+      databaseError.code = scenario.code;
+      const database = {
+        async query() {
+          throw databaseError;
+        },
+        async execute() {
+          throw databaseError;
+        }
+      };
+      const { server, baseUrl } = await startTestServer(database);
+
+      try {
+        const options = scenario.path.endsWith('/register')
+          ? {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                usuario: 'prueba_1',
+                contrasena: 'ClaveSegura123'
+              })
+            }
+          : {};
+        const response = await fetch(`${baseUrl}${scenario.path}`, options);
+        const body = await response.json();
+
+        assert.equal(response.status, scenario.status);
+        assert.match(body.message, new RegExp(scenario.expectedMessage));
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => error ? reject(error) : resolve());
+        });
+      }
+    }
+  } finally {
+    console.error = originalConsoleError;
+  }
 });

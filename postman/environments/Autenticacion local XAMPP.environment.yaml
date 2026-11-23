@@ -1,0 +1,4 @@
+name: Autenticacion local XAMPP
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000'

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuario": "{{testUser}}",
+      "contrasena": "{{testPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El usuario repetido devuelve un aviso claro', function () {
+          pm.response.to.have.status(409);
+          pm.expect(pm.response.json().message).to.eql('Ese usuario ya esta registrado.');
+      });
+    language: text/javascript
+order: 5000

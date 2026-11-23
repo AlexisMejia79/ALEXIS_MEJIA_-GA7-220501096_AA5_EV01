@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuario": "ab",
+      "contrasena": "corta"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Los datos invalidos se explican al cliente', function () {
+          pm.response.to.have.status(400);
+          pm.expect(pm.response.json().message).to.include('Revisa los datos');
+      });
+    language: text/javascript
+order: 6000

@@ -40,7 +40,7 @@ La API queda disponible en `http://localhost:3000`. Para detenerla, usa `Ctrl+C`
 }
 ```
 
-El usuario debe tener entre 3 y 30 caracteres: letras, numeros, punto, guion o guion bajo. La contrasena debe tener entre 8 y 72 bytes. Una respuesta correcta usa estado `201`; si el usuario ya existe, devuelve `409`.
+El usuario debe tener entre 3 y 30 caracteres: letras, numeros, punto, guion o guion bajo. La contrasena debe tener entre 8 y 72 bytes. Una respuesta correcta usa estado `201`; si el usuario ya existe, devuelve `409` con `{"message":"Ese usuario ya esta registrado."}`.
 
 ### Iniciar sesion
 
@@ -54,13 +54,35 @@ Usa el mismo formato JSON. Si los datos son correctos, devuelve estado `200` y e
 
 Todas las respuestas de error contienen un campo `message` en JSON para que la aplicacion cliente pueda mostrarlo como alerta. La API solo devuelve campos publicos del usuario, nunca su contrasena.
 
+## Probar con Postman
+
+La coleccion y el ambiente local se encuentran en `postman/`:
+
+- `postman/collections/auth-app-api.postman_collection.json`
+- `postman/environments/local-xampp.postman_environment.json`
+
+1. Inicia **MySQL** desde el panel de XAMPP y confirma que la base `auth_app_db` exista.
+2. Desde una terminal abierta en la carpeta del proyecto, ejecuta `npm run dev`. Deja esa terminal abierta mientras haces las pruebas.
+3. En Postman, pulsa **Import** y selecciona los dos archivos anteriores. Importa tanto la coleccion como el ambiente.
+4. En el selector de ambiente de la esquina superior derecha, elige **Autenticacion local XAMPP**. Su variable `baseUrl` apunta a `http://localhost:3000`.
+5. Abre **API de autenticacion - XAMPP**, pulsa **Run** y ejecuta la coleccion en orden. Los scripts de Postman comprobaran el codigo HTTP y el mensaje de cada respuesta:
+   - La API y la conexion a MySQL responden (`200`).
+   - Se registra un usuario de prueba unico (`201`).
+   - El usuario puede iniciar sesion (`200`).
+   - Una contrasena incorrecta se rechaza (`401`).
+   - El mismo usuario no se puede registrar de nuevo (`409`).
+   - Datos fuera de las reglas se rechazan con una explicacion (`400`).
+6. Tambien puedes abrir cada solicitud y pulsar **Send**. Ejecuta primero **1. Verificar API y base de datos** y luego **2. Registrar un usuario nuevo**; las solicitudes siguientes usan las variables de prueba creadas por el registro.
+
+El cuerpo de registro y de inicio de sesion es JSON con los campos `usuario` y `contrasena`. Postman muestra el motivo del error en **Body** como `message`. Si MySQL esta detenido, la base no existe, las credenciales de `.env` son incorrectas o falta la tabla, la respuesta explica como corregirlo. Para errores internos, revisa la terminal donde corre la API.
+
 ## Pruebas
 
 ```powershell
 npm test
 ```
 
-Las pruebas validan registro, inicio correcto, contrasena incorrecta, usuario repetido, datos invalidos y estado de salud. No requieren que XAMPP este iniciado.
+Las pruebas validan registro, inicio correcto, contrasena incorrecta, usuario repetido, datos invalidos, estado de salud y mensajes para problemas comunes de MySQL. No requieren que XAMPP este iniciado.
 
 ## Versionamiento
 

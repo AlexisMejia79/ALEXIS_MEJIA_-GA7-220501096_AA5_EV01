@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuario": "{{testUser}}",
+      "contrasena": "{{testPassword}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.collectionVariables.set('testUser', 'postman_' + Date.now());
+      pm.collectionVariables.set('testPassword', 'PostmanClave123');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('El usuario queda registrado', function () {
+          pm.response.to.have.status(201);
+          const body = pm.response.json();
+          pm.expect(body.message).to.eql('Usuario registrado correctamente.');
+          pm.expect(body.usuario.usuario).to.eql(pm.collectionVariables.get('testUser'));
+          pm.collectionVariables.set('testUserId', body.usuario.id);
+      });
+    language: text/javascript
+order: 2000

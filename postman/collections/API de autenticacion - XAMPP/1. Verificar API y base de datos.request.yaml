@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/health"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('La API y MySQL responden', function () {
+          pm.response.to.have.status(200);
+          pm.expect(pm.response.json().message).to.include('conectada');
+      });
+    language: text/javascript
+order: 1000
