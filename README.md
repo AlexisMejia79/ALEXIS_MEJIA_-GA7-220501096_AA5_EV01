@@ -21,8 +21,8 @@ Backend en JavaScript con Node.js, Express y MySQL/MariaDB de XAMPP. Permite reg
 5. Instala dependencias e inicia la API:
 
    ```powershell
-   npm install
-   npm run dev
+   npm.cmd install
+   npm.cmd run dev
    ```
 
 La API queda disponible en `http://localhost:3000`. Para detenerla, usa `Ctrl+C`.
@@ -56,13 +56,15 @@ Todas las respuestas de error contienen un campo `message` en JSON para que la a
 
 ## Probar con Postman
 
-La coleccion y el ambiente local se encuentran en `postman/`:
+La coleccion de trabajo y el ambiente local para el espacio de Postman se encuentran en `postman/`:
 
-- `postman/collections/auth-app-api.postman_collection.json`
-- `postman/environments/local-xampp.postman_environment.json`
+- `postman/collections/API de autenticacion - XAMPP/`
+- `postman/environments/Autenticacion local XAMPP.environment.yaml`
+
+Para importar archivos en Postman Desktop, utiliza la exportacion de coleccion `ci/postman/auth-app-api.postman_collection.json` y el ambiente `postman/environments/local-xampp.postman_environment.json`.
 
 1. Inicia **MySQL** desde el panel de XAMPP y confirma que la base `auth_app_db` exista.
-2. Desde una terminal abierta en la carpeta del proyecto, ejecuta `npm run dev`. Deja esa terminal abierta mientras haces las pruebas.
+2. Desde PowerShell, en una terminal abierta en la carpeta del proyecto, ejecuta `npm.cmd run dev`. Deja esa terminal abierta mientras haces las pruebas. El sufijo `.cmd` evita el bloqueo de `npm.ps1` por la politica de ejecucion de PowerShell.
 3. En Postman, pulsa **Import** y selecciona los dos archivos anteriores. Importa tanto la coleccion como el ambiente.
 4. En el selector de ambiente de la esquina superior derecha, elige **Autenticacion local XAMPP**. Su variable `baseUrl` apunta a `http://localhost:3000`.
 5. Abre **API de autenticacion - XAMPP**, pulsa **Run** y ejecuta la coleccion en orden. Los scripts de Postman comprobaran el codigo HTTP y el mensaje de cada respuesta:
@@ -79,10 +81,16 @@ El cuerpo de registro y de inicio de sesion es JSON con los campos `usuario` y `
 ## Pruebas
 
 ```powershell
-npm test
+npm.cmd test
 ```
 
 Las pruebas validan registro, inicio correcto, contrasena incorrecta, usuario repetido, datos invalidos, estado de salud y mensajes para problemas comunes de MySQL. No requieren que XAMPP este iniciado.
+
+## Ejecutar Postman en cada push
+
+El flujo `.github/workflows/postman-api.yml` ejecuta la coleccion de CI `ci/postman/auth-app-api.postman_collection.json` al hacer `push` o abrir un pull request; tambien se puede iniciar manualmente desde GitHub Actions. El flujo crea un MySQL temporal, aplica `database/auth_app_db.sql`, inicia la API y corre las seis solicitudes con Newman. No necesita secretos ni una instancia XAMPP en GitHub.
+
+Despues de subir estos archivos a GitHub, abre la pestana **Actions** del repositorio y revisa **API Postman tests**. Un fallo en cualquier solicitud o asercion hace que el flujo falle. Si cambias solicitudes o pruebas en Postman, actualiza tambien la exportacion `ci/postman/auth-app-api.postman_collection.json` que usa el flujo.
 
 ## Versionamiento
 
